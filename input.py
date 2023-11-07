@@ -8,6 +8,16 @@ def format_species_name(species):
         formatted_species = species.capitalize()
     return formatted_species
 
+def get_species_from_fasta(fasta_data):
+    species_set = set()
+    for line in fasta_data.split('\n'):
+        if line.startswith('>'):
+            parts = line.split('[')
+            if len(parts) > 1:
+                species = parts[-1].split(']')[0]
+                species_set.add(species)
+    return species_set
+
 # 用户输入界面
 protein_family = input("Enter the protein family name: ")
 taxonomic_group = input("Enter the taxonomic group: ")
@@ -39,12 +49,40 @@ if sequence_count > 1000:
     if continue_prompt.lower() != 'yes':
         exit()
 
+# 检测多物种
+species_set = get_species_from_fasta(sequence_data)
+if len(species_set) > 1:
+    print("Multiple species detected in the sequences:")
+    for species in species_set:
+        print(species)
+    
+    continue_prompt = input("Do you want to continue with all species? (yes/no): ")
+    
+    if continue_prompt.lower() == 'yes':
+        pass  # 如果用户选择继续，则包括所有物种
+    else:
+        # 用户选择特定物种进行分析
+        selected_species_input = input("Enter the species you are interested in (separate by commas if multiple): ")
+        selected_species_list = [sp.strip() for sp in selected_species_input.split(',')]
+        
+        # 只保留用户选择的物种的序列
+        sequence_data = '\n'.join(
+            sequence for sequence in sequence_data.split('\n\n') if any(species in sequence for species in selected_species_list)
+        )
+        sequence_count = sequence_data.count('>')
+
 # 保存序列数据到文件
 sequences_file = "sequences.fasta"
-with open(sequences_file, "w") as file:
-    file.write(sequence_data)
+try:
+    with open(sequences_file, "w") as file:
+        file.write(sequence_data)
+    print("Sequences saved to", sequences_file)
+except IOError as e:
+    print("An error occurred while writing sequences to file:", e)
 
 # 进行其他分析，如聚类、BLAST、保守性分析等
 
-print("Analysis complete. Results saved to", sequences_file)
+# ... [这里可以添加进一步的分析代码]
+
+print("Analysis complete.")
 

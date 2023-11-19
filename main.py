@@ -4,7 +4,7 @@
 import download_sequences
 import multiseq_analysis
 import prosite
-#import blast
+import blast
 
 # 主菜单函数
 def main_menu():
@@ -22,9 +22,14 @@ def main():
         choice = input("请选择一个功能：")
 
         if choice == '1':
-            download_sequences.run()  # 假设download_sequences.py中有一个名为run的函数
+            sequences = download_sequences.run()
+            if sequences is None:
+                continue  # 如果函数返回None，则返回主菜单
+            processed_sequences = process_species_in_sequences(sequences)
+            if processed_sequences is None:
+                continue  # 如果用户选择不继续，则返回主菜单
         elif choice == '2':
-                    # 设置输入和输出路径
+            # 设置输入和输出路径
             input_fasta = "sequences.fasta"
             output_folder = "results_folder"
             multiseq_analysis.run(input_fasta, output_folder)
@@ -33,8 +38,8 @@ def main():
             input_fasta = "sequences.fasta"
             output_folder = "patmatmotifs_results"
             prosite.run(input_fasta, output_folder)
-        #elif choice == '4':
-           # blast.run()  # 假设blast.py中有一个名为run的函数
+        elif choice == '4':
+            blast.run()  # 假设blast.py中有一个名为run的函数
         elif choice == '0':
             print("谢谢使用，再见！")
             break
